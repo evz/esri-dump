@@ -1,7 +1,7 @@
 import requests
 import json
 
-base_url = 'http://gisweb.co.aitkin.mn.us/arcgis/rest/services/MapLayers/MapServer/3'
+base_url = 'http://utility.arcgis.com/usrsvcs/servers/6b8c99dc28b34d5399f59e480951655a/rest/services/CSO/CSO_Final/MapServer/0'
 output_file = 'output.geojson'
 
 metadata = requests.get(base_url, params={'f': 'json'}).json()
@@ -20,9 +20,9 @@ bbox_file.write("""{
 oid_field = next(field['name'] for field in fields if field['type'] == 'esriFieldTypeOID')
 
 if oid_field:
-    print "Using '%s' as the OID field to dedupe." % oid_field
+    print("Using '%s' as the OID field to dedupe." % oid_field)
 else:
-    print "WARNING: Couldn't find the OID field to dedupe on, so you'll have duplicate data probably."
+    print("WARNING: Couldn't find the OID field to dedupe on, so you'll have duplicate data probably.")
 
 cells_x = 3
 cells_y = 3
@@ -61,7 +61,7 @@ def esrijson2geojson(geom_type, esrijson):
         geojson['type'] = 'Point'
         geojson['coordinates'] = [esrijson['x'], esrijson['y']]
     else:
-        print "I don't know how to convert esrijson of type '%s'." % geom_type
+        print("I don't know how to convert esrijson of type '%s'." % geom_type)
 
     return geojson
 
@@ -110,9 +110,11 @@ def write_features(features, saved):
             "properties": attrs,
             "geometry": esrijson2geojson(geom_type, geom)
         }))
+        
         f.write(',\n')
 
         saved.add(oid)
+    
 
 def split_bbox(bbox):
     (x1, y1, x2, y2) = bbox
@@ -129,7 +131,7 @@ def scrape_a_bbox(bbox, saved):
     features = fetch_features(base_url, bbox)
 
     if len(features) == max_records:
-        print "Retrieved exactly the maximum record count. Splitting this box and retrieving the children."
+        print("Retrieved exactly the maximum record count. Splitting this box and retrieving the children.")
 
         bboxes = split_bbox(bbox)
 
@@ -168,8 +170,10 @@ for x in xfrange(bounds['xmin'], bounds['xmax'], x_step):
         scrape_a_bbox(bbox, saved)
 
         i += 1
-        print "%s/%s cells, %s features." % (i, total_cells, len(saved))
+        print("%s/%s cells, %s features." % (i, total_cells, len(saved)))
 
+# Hack to get rid of trailing comma
+f.seek(f.tell()-2)
 f.write("]\n}\n")
 
 bbox_file.write("]\n}\n")
